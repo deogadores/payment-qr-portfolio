@@ -1,0 +1,12 @@
+import type { Config } from 'drizzle-kit'
+
+export default {
+  schema: './src/lib/db/schema.ts',
+  out: './drizzle',
+  dialect: 'sqlite',
+  dbCredentials: {
+    url: process.env.NODE_ENV === 'production' && process.env.TURSO_DATABASE_URL
+      ? process.env.TURSO_DATABASE_URL
+      : 'file:./sqlite.db',
+  },
+} satisfies Config
