@@ -18,28 +18,29 @@ export default async function SettingsPage() {
   }
 
   // Get or create user settings
-  let [settings] = await db
+  const existingSettings = await db
     .select()
     .from(userSettings)
     .where(eq(userSettings.userId, session.user.id))
     .limit(1)
+  let settings = existingSettings[0]
 
   if (!settings) {
     // Create default settings
-    ;[settings] = await db
+    const createdSettings = await db
       .insert(userSettings)
       .values({
         userId: session.user.id,
         displayStyle: 'carousel',
       })
-      .returning()
+      .returning() as (typeof userSettings.$inferSelect)[]
+    settings = createdSettings[0]
   }
 
-  async function handleUpdate(data: any) {
+  async function handleUpdate(data: any): Promise<void> {
     'use server'
-    const result = await updateSettingsAction(data)
+    await updateSettingsAction(data)
     revalidatePath('/settings')
-    return result
   }
 
   return (

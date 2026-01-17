@@ -29,34 +29,35 @@ export async function updateSettingsAction(data: {
     const session = await requireUser()
 
     // Get or create settings
-    const [existing] = await db
+    const existingSettings = await db
       .select()
       .from(userSettings)
       .where(eq(userSettings.userId, session.user.id))
       .limit(1)
+    const existing = existingSettings[0]
 
     if (existing) {
       // Update existing settings
-      const [updated] = await db
+      const updatedSettings = await db
         .update(userSettings)
         .set(data)
         .where(eq(userSettings.userId, session.user.id))
-        .returning()
+        .returning() as (typeof userSettings.$inferSelect)[]
 
       revalidatePath('/settings')
-      return { success: true, settings: updated }
+      return { success: true, settings: updatedSettings[0] }
     } else {
       // Create new settings
-      const [created] = await db
+      const createdSettings = await db
         .insert(userSettings)
         .values({
           userId: session.user.id,
           ...data,
         })
-        .returning()
+        .returning() as (typeof userSettings.$inferSelect)[]
 
       revalidatePath('/settings')
-      return { success: true, settings: created }
+      return { success: true, settings: createdSettings[0] }
     }
   } catch (error) {
     console.error('Error updating settings:', error)
@@ -68,14 +69,14 @@ export async function uploadLogoAction(imageUrl: string) {
   try {
     const session = await requireUser()
 
-    const [updated] = await db
+    const updatedSettings = await db
       .update(userSettings)
       .set({ logoUrl: imageUrl })
       .where(eq(userSettings.userId, session.user.id))
-      .returning()
+      .returning() as (typeof userSettings.$inferSelect)[]
 
     revalidatePath('/settings')
-    return { success: true, settings: updated }
+    return { success: true, settings: updatedSettings[0] }
   } catch (error) {
     console.error('Error uploading logo:', error)
     return { success: false, error: 'Failed to upload logo' }

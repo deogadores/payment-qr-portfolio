@@ -18,11 +18,12 @@ export async function validateShareLink(
   userAgent?: string
 ): Promise<LinkValidationResult> {
   try {
-    const [link] = await db
+    const links = await db
       .select()
       .from(shareLinks)
       .where(eq(shareLinks.token, token))
       .limit(1)
+    const link = links[0]
 
     if (!link) {
       return { valid: false, reason: 'not_found' }

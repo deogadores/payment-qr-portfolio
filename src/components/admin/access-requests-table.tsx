@@ -69,7 +69,7 @@ export function AccessRequestsTable({ requests }: AccessRequestsTableProps) {
                   <p className="text-sm text-muted-foreground mt-2 italic">"{request.reason}"</p>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Submitted: {new Date(request.createdAt).toLocaleDateString()}
+                  Submitted: {request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'Unknown'}
                 </p>
                 {request.reviewedAt && (
                   <p className="text-xs text-muted-foreground">

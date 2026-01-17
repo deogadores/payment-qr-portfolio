@@ -16,11 +16,12 @@ async function createAdminUser() {
 
   try {
     // Check if admin user already exists
-    const [existingUser] = await db
+    const existingUsers = await db
       .select()
       .from(users)
       .where(eq(users.email, email.toLowerCase()))
       .limit(1)
+    const existingUser = existingUsers[0]
 
     if (existingUser) {
       console.log('\n❌ User with this email already exists!')
@@ -43,7 +44,7 @@ async function createAdminUser() {
     const passwordHash = await hashPassword(password)
 
     // Create the admin user
-    const [newUser] = await db
+    const newUsers = await db
       .insert(users)
       .values({
         id: createId(),
@@ -53,7 +54,8 @@ async function createAdminUser() {
         isAdmin: true,
         registrationPhraseId: null,
       })
-      .returning()
+      .returning() as { id: string }[]
+    const newUser = newUsers[0]
 
     // Create user settings
     await db.insert(userSettings).values({

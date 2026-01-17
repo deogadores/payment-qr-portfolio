@@ -28,11 +28,12 @@ export const authConfig = {
           const { email, password } = validatedFields.data
 
           // Find user in database
-          const [user] = await db
+          const foundUsers = await db
             .select()
             .from(users)
             .where(eq(users.email, email.toLowerCase()))
             .limit(1)
+          const user = foundUsers[0]
 
           if (!user) {
             return null

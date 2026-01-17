@@ -69,7 +69,7 @@ export async function registerAction(data: RegisterInput) {
     const passwordHash = await hashPassword(password)
 
     // Create user
-    const [newUser] = await db
+    const newUsers = await db
       .insert(users)
       .values({
         email: email.toLowerCase(),
@@ -78,7 +78,8 @@ export async function registerAction(data: RegisterInput) {
         isAdmin: false,
         registrationPhraseId: phraseValidation.phraseId,
       })
-      .returning()
+      .returning() as { id: string }[]
+    const newUser = newUsers[0]
 
     // Mark phrase as used
     if (phraseValidation.phraseId) {

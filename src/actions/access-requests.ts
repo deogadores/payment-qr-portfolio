@@ -19,11 +19,12 @@ export async function submitAccessRequest(data: AccessRequestInput) {
     const normalizedEmail = email.toLowerCase()
 
     // Check if user already has an account
-    const [existingUser] = await db
+    const existingUsers = await db
       .select()
       .from(users)
       .where(eq(users.email, normalizedEmail))
       .limit(1)
+    const existingUser = existingUsers[0]
 
     if (existingUser) {
       return {
@@ -33,11 +34,12 @@ export async function submitAccessRequest(data: AccessRequestInput) {
     }
 
     // Check if there's already a pending or approved request with this email
-    const [existingRequest] = await db
+    const existingRequests = await db
       .select()
       .from(accessRequests)
       .where(eq(accessRequests.email, normalizedEmail))
       .limit(1)
+    const existingRequest = existingRequests[0]
 
     if (existingRequest) {
       if (existingRequest.status === 'pending') {

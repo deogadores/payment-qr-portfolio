@@ -1,8 +1,20 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { nanoid } from 'nanoid'
 
 // Helper function to generate unique IDs
 const createId = () => nanoid()
+
+// Registration Phrases table (defined first to break circular reference)
+export const registrationPhrases = sqliteTable('registration_phrases', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  phrase: text('phrase').notNull().unique(),
+  isUsed: integer('is_used', { mode: 'boolean' }).notNull().default(false),
+  usedBy: text('used_by'),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+  createdBy: text('created_by').notNull(), // Admin email who created it
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }),
+})
 
 // Users table
 export const users = sqliteTable('users', {
@@ -15,18 +27,6 @@ export const users = sqliteTable('users', {
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
     .$onUpdate(() => new Date()),
-})
-
-// Registration Phrases table
-export const registrationPhrases = sqliteTable('registration_phrases', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
-  phrase: text('phrase').notNull().unique(),
-  isUsed: integer('is_used', { mode: 'boolean' }).notNull().default(false),
-  usedBy: text('used_by').references(() => users.id),
-  usedAt: integer('used_at', { mode: 'timestamp' }),
-  createdBy: text('created_by').notNull(), // Admin email who created it
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }),
 })
 
 // Access Requests table

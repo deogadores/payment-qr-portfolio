@@ -27,16 +27,16 @@ export async function generatePhraseAction(expiresIn?: number) {
       ? new Date(Date.now() + expiresIn * 60 * 60 * 1000)
       : null
 
-    const [newPhrase] = await db
+    const newPhrases = await db
       .insert(registrationPhrases)
       .values({
         phrase,
         createdBy: session.user.email!,
         expiresAt,
       })
-      .returning()
+      .returning() as (typeof registrationPhrases.$inferSelect)[]
 
-    return { success: true, phrase: newPhrase }
+    return { success: true, phrase: newPhrases[0] }
   } catch (error) {
     console.error('Error generating phrase:', error)
     return { success: false, error: 'Failed to generate phrase' }
@@ -51,11 +51,12 @@ export async function reviewAccessRequestAction(
     const session = await requireAdmin()
 
     // Get the access request details first
-    const [request] = await db
+    const requests = await db
       .select()
       .from(accessRequests)
       .where(eq(accessRequests.id, requestId))
       .limit(1)
+    const request = requests[0]
 
     if (!request) {
       return { success: false, error: 'Request not found' }
@@ -124,11 +125,12 @@ export async function revokePhraseAction(phraseId: string) {
     await requireAdmin()
 
     // Delete the phrase if it hasn't been used
-    const [phrase] = await db
+    const phrases = await db
       .select()
       .from(registrationPhrases)
       .where(eq(registrationPhrases.id, phraseId))
       .limit(1)
+    const phrase = phrases[0]
 
     if (!phrase) {
       return { success: false, error: 'Phrase not found' }
@@ -151,9 +153,9 @@ export async function getAdminStatsAction() {
   try {
     await requireAdmin()
 
-    const [totalUsers] = await db.select().from(users)
-    const [totalPhrases] = await db.select().from(registrationPhrases)
-    const [pendingRequests] = await db
+    const totalUsers = await db.select().from(users)
+    const totalPhrases = await db.select().from(registrationPhrases)
+    const pendingRequests = await db
       .select()
       .from(accessRequests)
       .where(eq(accessRequests.status, 'pending'))

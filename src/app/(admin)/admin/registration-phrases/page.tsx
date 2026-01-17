@@ -54,7 +54,7 @@ export default async function RegistrationPhrasesPage() {
                     </p>
                     <p>
                       <span className="font-medium">Created:</span>{' '}
-                      {new Date(phrase.createdAt).toLocaleDateString()}
+                      {phrase.createdAt ? new Date(phrase.createdAt).toLocaleDateString() : 'Unknown'}
                     </p>
                     <p>
                       <span className="font-medium">By:</span> {phrase.createdBy}

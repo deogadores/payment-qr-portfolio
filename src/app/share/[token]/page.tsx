@@ -74,18 +74,20 @@ export default async function SharePage({ params }: PageProps) {
   const activeQrCodes = userQrCodes.filter((qr) => qr.isActive)
 
   // Get user settings
-  const [settings] = await db
+  const settingsResult = await db
     .select()
     .from(userSettings)
     .where(eq(userSettings.userId, validation.link!.userId))
     .limit(1)
+  const settings = settingsResult[0]
 
   // Get user info for page title
-  const [user] = await db
+  const usersResult = await db
     .select()
     .from(users)
     .where(eq(users.id, validation.link!.userId))
     .limit(1)
+  const user = usersResult[0]
 
   const displayStyle = settings?.displayStyle || 'carousel'
   const pageTitle = settings?.pageTitle || `${user?.name || 'User'}'s Payment Methods`

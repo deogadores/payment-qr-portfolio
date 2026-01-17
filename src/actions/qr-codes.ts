@@ -34,17 +34,17 @@ export async function createQrCodeAction(data: {
 
     const maxOrder = existingQrs.length > 0 ? Math.max(...existingQrs.map(q => q.order)) : -1
 
-    const [newQrCode] = await db
+    const newQrCodes = await db
       .insert(qrCodes)
       .values({
         userId: session.user.id,
         ...data,
         order: maxOrder + 1,
       })
-      .returning()
+      .returning() as (typeof qrCodes.$inferSelect)[]
 
     revalidatePath('/qr-codes')
-    return { success: true, qrCode: newQrCode }
+    return { success: true, qrCode: newQrCodes[0] }
   } catch (error) {
     console.error('Error creating QR code:', error)
     return { success: false, error: 'Failed to create QR code' }
@@ -64,11 +64,12 @@ export async function updateQrCodeAction(
   try {
     const session = await requireUser()
 
-    const [updated] = await db
+    const updatedQrCodes = await db
       .update(qrCodes)
       .set(data)
       .where(and(eq(qrCodes.id, qrCodeId), eq(qrCodes.userId, session.user.id)))
-      .returning()
+      .returning() as (typeof qrCodes.$inferSelect)[]
+    const updated = updatedQrCodes[0]
 
     if (!updated) {
       return { success: false, error: 'QR code not found' }
@@ -86,11 +87,12 @@ export async function deleteQrCodeAction(qrCodeId: string) {
   try {
     const session = await requireUser()
 
-    const [qrCode] = await db
+    const qrCodesResult = await db
       .select()
       .from(qrCodes)
       .where(and(eq(qrCodes.id, qrCodeId), eq(qrCodes.userId, session.user.id)))
       .limit(1)
+    const qrCode = qrCodesResult[0]
 
     if (!qrCode) {
       return { success: false, error: 'QR code not found' }

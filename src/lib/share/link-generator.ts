@@ -18,7 +18,7 @@ export async function createShareLink(options: CreateShareLinkOptions) {
       ? new Date(Date.now() + expiresIn * 60 * 60 * 1000)
       : null
 
-  const [link] = await db
+  const links = await db
     .insert(shareLinks)
     .values({
       userId,
@@ -26,7 +26,8 @@ export async function createShareLink(options: CreateShareLinkOptions) {
       linkType,
       expiresAt,
     })
-    .returning()
+    .returning() as (typeof shareLinks.$inferSelect)[]
+  const link = links[0]
 
   const url = `${process.env.NEXT_PUBLIC_APP_URL}/share/${token}`
 

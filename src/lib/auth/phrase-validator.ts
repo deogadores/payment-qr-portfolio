@@ -17,11 +17,12 @@ export async function validateRegistrationPhrase(
 ): Promise<PhraseValidationResult> {
   try {
     // Find the phrase in the database
-    const [registrationPhrase] = await db
+    const phrases = await db
       .select()
       .from(registrationPhrases)
       .where(eq(registrationPhrases.phrase, phrase))
       .limit(1)
+    const registrationPhrase = phrases[0]
 
     if (!registrationPhrase) {
       return { valid: false, reason: 'invalid_phrase' }

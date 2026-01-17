@@ -5,15 +5,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Shield, QrCode as QrCodeIcon } from 'lucide-react'
 
 export default async function UsersPage() {
-  const allUsers = await db.select().from(users).orderBy(desc(users.createdAt))
+  const allUsers = await db.select().from(users).orderBy(desc(users.createdAt)) as (typeof users.$inferSelect)[]
 
   // Get QR code counts for each user
   const userStats = await Promise.all(
     allUsers.map(async (user) => {
-      const [qrCount] = await db
+      const qrCountResult = await db
         .select({ count: count() })
         .from(qrCodes)
-        .where(eq(qrCodes.userId, user.id))
+        .where(eq(qrCodes.userId, user.id)) as { count: number }[]
+      const qrCount = qrCountResult[0]
 
       return {
         ...user,
@@ -54,7 +55,7 @@ export default async function UsersPage() {
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>
                     <span className="font-medium">Joined:</span>{' '}
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
                   </p>
                   <p>
                     <span className="font-medium">Role:</span>{' '}
