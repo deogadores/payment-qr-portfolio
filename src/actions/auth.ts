@@ -1,106 +1,81 @@
 'use server'
 
-import { signIn, signOut } from '@/lib/auth/auth'
+import { loginWithCentralAuth, registerWithCentralAuth, requestToolAccess } from '@/lib/auth/api-client'
+import { setAuthCookie, clearAuthCookie } from '@/lib/auth/session'
+import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
-import { users, userSettings } from '@/lib/db/schema'
-import { hashPassword } from '@/lib/utils/crypto'
-import { validateRegistrationPhrase, markPhraseAsUsed } from '@/lib/auth/phrase-validator'
+import { userSettings } from '@/lib/db/schema'
 import { registerSchema, type RegisterInput } from '@/lib/utils/validators'
-import { eq } from 'drizzle-orm'
-import { AuthError } from 'next-auth'
 
 export async function loginAction(email: string, password: string) {
-  try {
-    await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
-    return { success: true }
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return { success: false, error: 'Invalid email or password' }
-    }
-    return { success: false, error: 'An error occurred during login' }
-  }
-}
+  const result = await loginWithCentralAuth(email, password)
 
-export async function logoutAction() {
-  await signOut({ redirectTo: '/login' })
+  if (!result.success) {
+    return { success: false, error: result.error || 'Login failed' }
+  }
+
+  // Check if user has access to this tool
+  if (!result.toolAccess?.includes('qr-portfolio')) {
+    return {
+      success: false,
+      error: 'You do not have access to this tool. Please request access first.',
+    }
+  }
+
+  if (result.token) {
+    await setAuthCookie(result.token)
+  }
+
+  return { success: true }
 }
 
 export async function registerAction(data: RegisterInput) {
-  try {
-    // Validate input
-    const validatedFields = registerSchema.safeParse(data)
-    if (!validatedFields.success) {
-      return { success: false, error: 'Invalid input data' }
-    }
-
-    const { registrationPhrase, name, email, password } = validatedFields.data
-
-    // Validate registration phrase
-    const phraseValidation = await validateRegistrationPhrase(registrationPhrase)
-    if (!phraseValidation.valid) {
-      const errorMessages = {
-        invalid_phrase: 'Invalid registration phrase',
-        phrase_already_used: 'This registration phrase has already been used',
-        phrase_expired: 'This registration phrase has expired',
-        validation_error: 'Error validating registration phrase',
-      }
-      return {
-        success: false,
-        error: errorMessages[phraseValidation.reason as keyof typeof errorMessages] || 'Invalid registration phrase',
-      }
-    }
-
-    // Check if email already exists
-    const existingUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email.toLowerCase()))
-      .limit(1)
-
-    if (existingUser.length > 0) {
-      return { success: false, error: 'Email already registered' }
-    }
-
-    // Hash password
-    const passwordHash = await hashPassword(password)
-
-    // Create user
-    const newUsers = await db
-      .insert(users)
-      .values({
-        email: email.toLowerCase(),
-        passwordHash,
-        name,
-        isAdmin: false,
-        registrationPhraseId: phraseValidation.phraseId,
-      })
-      .returning() as { id: string }[]
-    const newUser = newUsers[0]
-
-    // Mark phrase as used
-    if (phraseValidation.phraseId) {
-      await markPhraseAsUsed(phraseValidation.phraseId, newUser.id)
-    }
-
-    // Create default user settings
-    await db.insert(userSettings).values({
-      userId: newUser.id,
-    })
-
-    // Auto-login the user
-    await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
-
-    return { success: true }
-  } catch (error) {
-    console.error('Registration error:', error)
-    return { success: false, error: 'An error occurred during registration' }
+  // Validate input
+  const validatedFields = registerSchema.safeParse(data)
+  if (!validatedFields.success) {
+    return { success: false, error: 'Invalid input data' }
   }
+
+  const result = await registerWithCentralAuth(data)
+
+  if (!result.success) {
+    return { success: false, error: result.error || 'Registration failed' }
+  }
+
+  // Create default user settings in local database
+  if (result.user) {
+    try {
+      await db.insert(userSettings).values({
+        userId: result.user.id,
+      })
+    } catch (error) {
+      // Settings might already exist, ignore error
+      console.error('Error creating user settings:', error)
+    }
+  }
+
+  if (result.token) {
+    await setAuthCookie(result.token)
+  }
+
+  return { success: true }
+}
+
+export async function logoutAction() {
+  await clearAuthCookie()
+  redirect('/login')
+}
+
+export async function requestAccessAction(data: {
+  name: string
+  email: string
+  reason?: string
+}) {
+  const result = await requestToolAccess(data)
+
+  if (!result.success) {
+    return { success: false, error: result.error || 'Failed to submit request' }
+  }
+
+  return { success: true, message: result.message }
 }

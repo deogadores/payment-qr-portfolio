@@ -1,54 +1,13 @@
-import { sqliteTable, text, integer, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 import { nanoid } from 'nanoid'
 
 // Helper function to generate unique IDs
 const createId = () => nanoid()
 
-// Registration Phrases table (defined first to break circular reference)
-export const registrationPhrases = sqliteTable('registration_phrases', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
-  phrase: text('phrase').notNull().unique(),
-  isUsed: integer('is_used', { mode: 'boolean' }).notNull().default(false),
-  usedBy: text('used_by'),
-  usedAt: integer('used_at', { mode: 'timestamp' }),
-  createdBy: text('created_by').notNull(), // Admin email who created it
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }),
-})
-
-// Users table
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
-  email: text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
-  name: text('name'),
-  isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
-  registrationPhraseId: text('registration_phrase_id').references(() => registrationPhrases.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
-    .$onUpdate(() => new Date()),
-})
-
-// Access Requests table
-export const accessRequests = sqliteTable('access_requests', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
-  name: text('name').notNull(),
-  email: text('email').notNull(),
-  reason: text('reason'),
-  status: text('status', { enum: ['pending', 'approved', 'rejected'] })
-    .notNull()
-    .default('pending'),
-  reviewedBy: text('reviewed_by'), // Admin email who reviewed
-  reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-})
-
-// QR Codes table
+// QR Codes table - userId references external auth API
 export const qrCodes = sqliteTable('qr_codes', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull(), // External user ID from central auth
   title: text('title').notNull(),
   description: text('description'),
   imageUrl: text('image_url').notNull(), // Vercel Blob URL
@@ -61,13 +20,10 @@ export const qrCodes = sqliteTable('qr_codes', {
     .$onUpdate(() => new Date()),
 })
 
-// User Settings table
+// User Settings table - userId references external auth API
 export const userSettings = sqliteTable('user_settings', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  userId: text('user_id')
-    .notNull()
-    .unique()
-    .references(() => users.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().unique(), // External user ID from central auth
   displayStyle: text('display_style', { enum: ['carousel', 'grid', 'single'] })
     .notNull()
     .default('carousel'),
@@ -89,9 +45,7 @@ export const userSettings = sqliteTable('user_settings', {
 // Share Links table
 export const shareLinks = sqliteTable('share_links', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull(), // External user ID from central auth
   token: text('token').notNull().unique(), // URL-safe random token
   linkType: text('link_type', { enum: ['expiring', 'one-time'] }).notNull(),
   expiresAt: integer('expires_at', { mode: 'timestamp' }), // For expiring links
@@ -105,24 +59,13 @@ export const shareLinks = sqliteTable('share_links', {
 // Share Link Access Logs table (optional, for analytics)
 export const shareLinkLogs = sqliteTable('share_link_logs', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  shareLinkId: text('share_link_id')
-    .notNull()
-    .references(() => shareLinks.id, { onDelete: 'cascade' }),
+  shareLinkId: text('share_link_id').notNull(), // Reference to shareLinks.id
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   accessedAt: integer('accessed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 })
 
 // Type exports for TypeScript
-export type User = typeof users.$inferSelect
-export type NewUser = typeof users.$inferInsert
-
-export type RegistrationPhrase = typeof registrationPhrases.$inferSelect
-export type NewRegistrationPhrase = typeof registrationPhrases.$inferInsert
-
-export type AccessRequest = typeof accessRequests.$inferSelect
-export type NewAccessRequest = typeof accessRequests.$inferInsert
-
 export type QrCode = typeof qrCodes.$inferSelect
 export type NewQrCode = typeof qrCodes.$inferInsert
 

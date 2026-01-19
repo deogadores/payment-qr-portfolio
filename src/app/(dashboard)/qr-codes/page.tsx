@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth/auth'
+import { getSession } from '@/lib/auth/session'
 import { db } from '@/lib/db'
 import { qrCodes } from '@/lib/db/schema'
 import { eq, asc } from 'drizzle-orm'
@@ -10,7 +10,7 @@ import { Plus, Edit, Trash2 } from 'lucide-react'
 import { QrCodeActions } from '@/components/qr-management/qr-code-actions'
 
 export default async function QrCodesPage() {
-  const session = await auth()
+  const session = await getSession()
 
   const userQrCodes = await db
     .select()

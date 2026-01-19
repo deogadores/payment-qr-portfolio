@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth/auth'
+import { getSession } from '@/lib/auth/session'
 import { db } from '@/lib/db'
 import { userSettings } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { revalidatePath } from 'next/cache'
 
 export default async function SettingsPage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user) {
     redirect('/login')

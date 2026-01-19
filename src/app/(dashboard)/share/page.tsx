@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth/auth'
+import { getSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 import { getShareLinksAction } from '@/actions/share-links'
 import { LinkGenerator } from '@/components/share/link-generator'
@@ -7,7 +7,7 @@ import { ActiveLinksTable } from '@/components/share/active-links-table'
 export const dynamic = 'force-dynamic'
 
 export default async function SharePage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user) {
     redirect('/login')

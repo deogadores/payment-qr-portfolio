@@ -1,16 +1,16 @@
-import { auth } from '@/lib/auth/auth'
+import { getSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/actions/auth'
-import { LayoutDashboard, QrCode, Settings, Share2, LogOut, Shield } from 'lucide-react'
+import { LayoutDashboard, QrCode, Settings, Share2, LogOut } from 'lucide-react'
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user) {
     redirect('/login')
@@ -54,14 +54,6 @@ export default async function DashboardLayout({
               </div>
             </div>
             <div className="flex items-center gap-4">
-              {session.user.isAdmin && (
-                <Link href="/admin">
-                  <Button variant="outline" size="sm">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Admin
-                  </Button>
-                </Link>
-              )}
               <span className="text-sm text-gray-300">{session.user.email}</span>
               <form action={logoutAction}>
                 <Button variant="outline" size="sm" type="submit">

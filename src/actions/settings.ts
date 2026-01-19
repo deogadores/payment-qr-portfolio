@@ -1,6 +1,6 @@
 'use server'
 
-import { auth } from '@/lib/auth/auth'
+import { getSession } from '@/lib/auth/session'
 import { db } from '@/lib/db'
 import { userSettings } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
 async function requireUser() {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user) {
     redirect('/login')
   }

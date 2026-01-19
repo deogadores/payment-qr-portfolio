@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth/auth'
+import { getSession } from '@/lib/auth/session'
 import { db } from '@/lib/db'
 import { qrCodes, shareLinks } from '@/lib/db/schema'
 import { eq, and, gte } from 'drizzle-orm'
@@ -9,7 +9,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 export default async function DashboardPage() {
-  const session = await auth()
+  const session = await getSession()
 
   // Fetch user's QR codes
   const userQrCodes = await db
