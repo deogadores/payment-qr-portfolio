@@ -1,7 +1,8 @@
 import { db } from '@/lib/db'
-import { qrCodes, userSettings, users } from '@/lib/db/schema'
+import { qrCodes, userSettings } from '@/lib/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { validateShareLink } from '@/lib/share/link-validator'
+import { getPublicUserInfo } from '@/lib/auth/api-client'
 import { headers } from 'next/headers'
 import { CarouselView } from '@/components/qr-display/carousel-view'
 import { GridView } from '@/components/qr-display/grid-view'
@@ -81,13 +82,8 @@ export default async function SharePage({ params }: PageProps) {
     .limit(1)
   const settings = settingsResult[0]
 
-  // Get user info for page title
-  const usersResult = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, validation.link!.userId))
-    .limit(1)
-  const user = usersResult[0]
+  // Get user info from central auth API for page title
+  const user = await getPublicUserInfo(validation.link!.userId)
 
   const displayStyle = settings?.displayStyle || 'carousel'
   const pageTitle = settings?.pageTitle || `${user?.name || 'User'}'s Payment Methods`

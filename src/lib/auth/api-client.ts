@@ -100,3 +100,28 @@ export async function requestToolAccess(data: {
     return { success: false, error: 'Failed to connect to auth service' }
   }
 }
+
+export interface PublicUserInfo {
+  id: string
+  name: string | null
+}
+
+export async function getPublicUserInfo(userId: string): Promise<PublicUserInfo | null> {
+  try {
+    const res = await fetch(`${AUTH_API_URL}/api/users/${userId}/public`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    })
+
+    if (!res.ok) {
+      return null
+    }
+
+    const data = await res.json()
+    return data.user || null
+  } catch (error) {
+    console.error('Get public user info error:', error)
+    return null
+  }
+}
