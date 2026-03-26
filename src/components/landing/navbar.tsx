@@ -23,9 +23,6 @@ export function Navbar() {
             <Button asChild variant="ghost" size="sm">
               <Link href="/login">Sign In</Link>
             </Button>
-            <Button asChild size="sm">
-              <Link href="#request-access">Get Started</Link>
-            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -47,10 +44,7 @@ export function Navbar() {
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/login">Sign In</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="#request-access">Get Started</Link>
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
                 </Button>
               </div>
             </div>

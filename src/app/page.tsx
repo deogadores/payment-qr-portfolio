@@ -1,6 +1,4 @@
-import Link from 'next/link'
 import { QrCode, Share2, Shield } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Navbar } from '@/components/landing/navbar'
 import { ContactForm } from '@/components/landing/contact-form'
 
@@ -24,15 +22,6 @@ export default function HomePage() {
           <p className="text-lg text-muted-foreground max-w-lg mx-auto">
             Upload your e-wallet or bank QR codes and share them via secure, time-limited links.
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild size="lg">
-              <Link href="#request-access">Request Access</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/login">Sign In</Link>
-            </Button>
-          </div>
 
           {/* Quick features */}
           <div className="flex flex-wrap justify-center gap-6 pt-4 text-sm text-muted-foreground">
