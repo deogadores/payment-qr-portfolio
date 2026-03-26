@@ -19,19 +19,6 @@ export function Navbar() {
             <span className="font-bold text-xl">QR Portfolio</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </Link>
-            <Link href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              How It Works
-            </Link>
-            <Link href="#request-access" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Request Access
-            </Link>
-          </div>
-
           <div className="hidden md:flex items-center gap-3">
             <Button asChild variant="ghost" size="sm">
               <Link href="/login">Sign In</Link>
@@ -58,28 +45,7 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border">
             <div className="flex flex-col gap-4">
-              <Link
-                href="#features"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Features
-              </Link>
-              <Link
-                href="#how-it-works"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                How It Works
-              </Link>
-              <Link
-                href="#request-access"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Request Access
-              </Link>
-              <div className="flex flex-col gap-2 pt-4 border-t border-border">
+              <div className="flex flex-col gap-2">
                 <Button asChild variant="outline" size="sm">
                   <Link href="/login">Sign In</Link>
                 </Button>
