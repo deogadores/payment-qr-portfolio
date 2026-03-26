@@ -17,6 +17,7 @@ import { Loader2, Check, X } from 'lucide-react'
 export function RegisterForm() {
   const searchParams = useSearchParams()
   const phraseFromUrl = searchParams.get('phrase') || ''
+  const emailFromUrl = searchParams.get('email') || ''
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -29,6 +30,7 @@ export function RegisterForm() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       registrationPhrase: phraseFromUrl,
+      email: emailFromUrl,
     },
   })
 
@@ -78,15 +80,19 @@ export function RegisterForm() {
               placeholder="your-registration-phrase"
               {...register('registrationPhrase')}
               disabled={isLoading}
+              readOnly={!!phraseFromUrl}
+              className={phraseFromUrl ? 'bg-muted cursor-not-allowed' : ''}
             />
             {errors.registrationPhrase && (
               <p className="text-sm text-destructive">
                 {errors.registrationPhrase.message}
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
-              Request a phrase from the admin if you don't have one
-            </p>
+            {!phraseFromUrl && (
+              <p className="text-xs text-muted-foreground">
+                Request a phrase from the admin if you don't have one
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -111,6 +117,8 @@ export function RegisterForm() {
               placeholder="you@example.com"
               {...register('email')}
               disabled={isLoading}
+              readOnly={!!emailFromUrl}
+              className={emailFromUrl ? 'bg-muted cursor-not-allowed' : ''}
             />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>
