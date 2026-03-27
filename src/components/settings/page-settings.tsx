@@ -1,50 +1,33 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { toast } from 'sonner'
 import { Eye, EyeOff, Download, X } from 'lucide-react'
 
 type PageSettingsProps = {
-  settings: {
-    pageTitle?: string | null
-    pageDescription?: string | null
-    showAccountDetails?: boolean | null
-    showDownloadButton?: boolean | null
-  }
-  onUpdate: (data: any) => Promise<void>
+  pageTitle: string
+  pageDescription: string
+  showAccountDetails: boolean
+  showDownloadButton: boolean
+  onPageTitleChange: (v: string) => void
+  onPageDescriptionChange: (v: string) => void
+  onShowAccountDetailsChange: (v: boolean) => void
+  onShowDownloadButtonChange: (v: boolean) => void
 }
 
-export function PageSettings({ settings, onUpdate }: PageSettingsProps) {
-  const [pageTitle, setPageTitle] = useState(settings.pageTitle || '')
-  const [pageDescription, setPageDescription] = useState(settings.pageDescription || '')
-  const [showAccountDetails, setShowAccountDetails] = useState(settings.showAccountDetails ?? true)
-  const [showDownloadButton, setShowDownloadButton] = useState(settings.showDownloadButton ?? true)
-  const [isSaving, setIsSaving] = useState(false)
-
-  const hasChanges =
-    pageTitle !== (settings.pageTitle || '') ||
-    pageDescription !== (settings.pageDescription || '') ||
-    showAccountDetails !== (settings.showAccountDetails ?? true) ||
-    showDownloadButton !== (settings.showDownloadButton ?? true)
-
-  const handleSave = async () => {
-    setIsSaving(true)
-    try {
-      await onUpdate({ pageTitle, pageDescription, showAccountDetails, showDownloadButton })
-      toast.success('Page settings saved')
-    } catch {
-      toast.error('Failed to save settings')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
+export function PageSettings({
+  pageTitle,
+  pageDescription,
+  showAccountDetails,
+  showDownloadButton,
+  onPageTitleChange,
+  onPageDescriptionChange,
+  onShowAccountDetailsChange,
+  onShowDownloadButtonChange,
+}: PageSettingsProps) {
   return (
     <div className="space-y-4">
       <Card>
@@ -61,7 +44,7 @@ export function PageSettings({ settings, onUpdate }: PageSettingsProps) {
               id="pageTitle"
               placeholder="e.g., My Payment Methods"
               value={pageTitle}
-              onChange={(e) => setPageTitle(e.target.value)}
+              onChange={(e) => onPageTitleChange(e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -70,7 +53,7 @@ export function PageSettings({ settings, onUpdate }: PageSettingsProps) {
               id="pageDescription"
               placeholder="e.g., Choose your preferred payment method below"
               value={pageDescription}
-              onChange={(e) => setPageDescription(e.target.value)}
+              onChange={(e) => onPageDescriptionChange(e.target.value)}
               rows={3}
               className="resize-none"
             />
@@ -111,7 +94,7 @@ export function PageSettings({ settings, onUpdate }: PageSettingsProps) {
             <Switch
               id="showAccountDetails"
               checked={showAccountDetails}
-              onCheckedChange={setShowAccountDetails}
+              onCheckedChange={onShowAccountDetailsChange}
             />
           </label>
 
@@ -142,15 +125,11 @@ export function PageSettings({ settings, onUpdate }: PageSettingsProps) {
             <Switch
               id="showDownloadButton"
               checked={showDownloadButton}
-              onCheckedChange={setShowDownloadButton}
+              onCheckedChange={onShowDownloadButtonChange}
             />
           </label>
         </CardContent>
       </Card>
-
-      <Button onClick={handleSave} disabled={isSaving || !hasChanges} className="w-full">
-        {isSaving ? 'Saving…' : hasChanges ? 'Save Page Settings' : 'No Changes'}
-      </Button>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use server'
 
-import { loginWithCentralAuth, registerWithCentralAuth, requestToolAccess } from '@/lib/auth/api-client'
+import { loginWithCentralAuth, registerWithCentralAuth, requestToolAccess, forgotPassword, resetPassword } from '@/lib/auth/api-client'
 import { setAuthCookie, clearAuthCookie } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
@@ -64,6 +64,27 @@ export async function registerAction(data: RegisterInput) {
 export async function logoutAction() {
   await clearAuthCookie()
   redirect('/login')
+}
+
+export async function forgotPasswordAction(email: string) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'
+  const result = await forgotPassword(email, appUrl)
+
+  if (!result.success) {
+    return { success: false, error: result.error || 'Failed to send reset email' }
+  }
+
+  return { success: true }
+}
+
+export async function resetPasswordAction(token: string, password: string) {
+  const result = await resetPassword(token, password)
+
+  if (!result.success) {
+    return { success: false, error: result.error || 'Failed to reset password' }
+  }
+
+  return { success: true }
 }
 
 export async function requestAccessAction(data: {

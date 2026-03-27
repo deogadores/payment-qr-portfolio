@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Download, X, ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react'
 import { useImageBgColor } from './use-image-bg-color'
@@ -146,6 +147,8 @@ export function QrRenderer({
     }
   }
 
+  const noSaveStyle: React.CSSProperties = { pointerEvents: 'none', userSelect: 'none', WebkitTouchCallout: 'none' as any }
+
   return (
     <>
       <div className="qr-card bg-white rounded-lg shadow-lg overflow-hidden">
@@ -153,9 +156,10 @@ export function QrRenderer({
           className="aspect-square relative w-full cursor-zoom-in group"
           style={{ backgroundColor: bgColor }}
           onClick={() => setZoomed(true)}
+          onContextMenu={(e) => e.preventDefault()}
           aria-label="Zoom QR code"
         >
-          <Image src={qr.imageUrl} alt={qr.title} fill className="object-contain p-8" priority />
+          <Image src={qr.imageUrl} alt={qr.title} fill className="object-contain p-8" priority draggable={false} style={noSaveStyle} />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10">
             <div className="bg-white/90 rounded-full p-2 shadow">
               <ZoomIn className="h-5 w-5 text-gray-700" />
@@ -198,10 +202,11 @@ export function QrRenderer({
       </div>
 
       {/* Lightbox */}
-      {zoomed && (
+      {zoomed && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={closeLightbox}
+          onContextMenu={(e) => e.preventDefault()}
         >
           {/* Close */}
           <button
@@ -277,10 +282,11 @@ export function QrRenderer({
                 transition: drag.current.active || pinch.current.active ? 'none' : 'transform 0.15s ease',
               }}
             >
-              <Image src={qr.imageUrl} alt={qr.title} fill className="object-contain p-8" priority />
+              <Image src={qr.imageUrl} alt={qr.title} fill className="object-contain p-8" priority draggable={false} style={noSaveStyle} />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

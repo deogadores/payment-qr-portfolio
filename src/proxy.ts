@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:3001'
 const TOOL_SLUG = 'qr-portfolio'
 
-const publicPaths = ['/', '/login', '/register', '/request-access']
+const publicPaths = ['/', '/login', '/register', '/request-access', '/forgot-password', '/reset-password']
 const sharePaths = ['/share']
 
 export async function proxy(request: NextRequest) {

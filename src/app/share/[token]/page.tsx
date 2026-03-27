@@ -7,6 +7,7 @@ import { headers } from 'next/headers'
 import { CarouselView } from '@/components/qr-display/carousel-view'
 import { GridView } from '@/components/qr-display/grid-view'
 import { SingleCardView } from '@/components/qr-display/single-card-view'
+import { ListView } from '@/components/qr-display/list-view'
 import Image from 'next/image'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Ban, Clock } from 'lucide-react'
@@ -184,6 +185,16 @@ export default async function SharePage({ params }: PageProps) {
               showDownloadButton={showDownloadButton}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
+            />
+          )}
+          {displayStyle === 'list' && (
+            <ListView
+              qrCodes={activeQrCodes}
+              showAccountDetails={showAccountDetails}
+              showDownloadButton={showDownloadButton}
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+              backgroundColor={backgroundColor}
             />
           )}
         </div>

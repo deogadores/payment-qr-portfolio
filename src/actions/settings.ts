@@ -16,7 +16,7 @@ async function requireUser() {
 }
 
 export async function updateSettingsAction(data: {
-  displayStyle?: 'carousel' | 'grid' | 'single'
+  displayStyle?: 'carousel' | 'grid' | 'single' | 'list'
   primaryColor?: string
   secondaryColor?: string
   backgroundColor?: string

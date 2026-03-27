@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { deleteQrCodeAction, updateQrCodeAction } from '@/actions/qr-codes'
 import { toast } from 'sonner'
-import { Trash2, Eye, EyeOff } from 'lucide-react'
+import { Trash2, Eye, EyeOff, Pencil } from 'lucide-react'
 import type { QrCode } from '@/lib/db/schema'
 
 interface QrCodeActionsProps {
@@ -16,20 +17,17 @@ export function QrCodeActions({ qrCode }: QrCodeActionsProps) {
   const [isToggling, setIsToggling] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this QR code?')) {
-      return
-    }
+    if (!confirm('Are you sure you want to delete this QR code?')) return
 
     setIsDeleting(true)
     try {
       const result = await deleteQrCodeAction(qrCode.id)
-
       if (result.success) {
         toast.success('QR code deleted successfully')
       } else {
         toast.error(result.error || 'Failed to delete QR code')
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred')
     } finally {
       setIsDeleting(false)
@@ -39,16 +37,13 @@ export function QrCodeActions({ qrCode }: QrCodeActionsProps) {
   const handleToggleActive = async () => {
     setIsToggling(true)
     try {
-      const result = await updateQrCodeAction(qrCode.id, {
-        isActive: !qrCode.isActive,
-      })
-
+      const result = await updateQrCodeAction(qrCode.id, { isActive: !qrCode.isActive })
       if (result.success) {
         toast.success(qrCode.isActive ? 'QR code hidden' : 'QR code activated')
       } else {
         toast.error(result.error || 'Failed to update QR code')
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred')
     } finally {
       setIsToggling(false)
@@ -65,17 +60,19 @@ export function QrCodeActions({ qrCode }: QrCodeActionsProps) {
         disabled={isToggling}
       >
         {qrCode.isActive ? (
-          <>
-            <EyeOff className="h-4 w-4 mr-1" />
-            Hide
-          </>
+          <><EyeOff className="h-4 w-4 mr-1" />Hide</>
         ) : (
-          <>
-            <Eye className="h-4 w-4 mr-1" />
-            Show
-          </>
+          <><Eye className="h-4 w-4 mr-1" />Show</>
         )}
       </Button>
+
+      <Button variant="outline" size="sm" className="flex-1" asChild>
+        <Link href={`/dashboard/edit/${qrCode.id}`}>
+          <Pencil className="h-4 w-4 mr-1" />
+          Edit
+        </Link>
+      </Button>
+
       <Button
         variant="outline"
         size="sm"

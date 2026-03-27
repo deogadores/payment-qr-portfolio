@@ -28,16 +28,15 @@ const DARK_PRESETS = [
   { name: 'Ember',    primary: '#fb923c', secondary: '#f87171', background: '#1c0f0a' },
 ] as const
 
-const PRESETS = [...LIGHT_PRESETS, ...DARK_PRESETS]
-
 type AppearanceSettingsProps = {
-  settings: {
-    primaryColor?: string | null
-    secondaryColor?: string | null
-    backgroundColor?: string | null
-    logoUrl?: string | null
-  }
-  onUpdate: (data: any) => Promise<void>
+  primaryColor: string
+  secondaryColor: string
+  backgroundColor: string
+  logoUrl: string | null
+  onPrimaryColorChange: (v: string) => void
+  onSecondaryColorChange: (v: string) => void
+  onBackgroundColorChange: (v: string) => void
+  onLogoChange: (url: string | null) => void
 }
 
 function ColorRow({
@@ -76,21 +75,17 @@ function ColorRow({
   )
 }
 
-export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsProps) {
+export function AppearanceSettings({
+  primaryColor,
+  secondaryColor,
+  backgroundColor,
+  logoUrl,
+  onPrimaryColorChange,
+  onSecondaryColorChange,
+  onBackgroundColorChange,
+  onLogoChange,
+}: AppearanceSettingsProps) {
   const [isUploading, setIsUploading] = useState(false)
-  const [isSavingColors, setIsSavingColors] = useState(false)
-  const [logoPreview, setLogoPreview] = useState<string | null>(settings.logoUrl || null)
-  const [primaryColor, setPrimaryColor] = useState(settings.primaryColor || '#6366f1')
-  const [secondaryColor, setSecondaryColor] = useState(settings.secondaryColor || '#8b5cf6')
-  const [backgroundColor, setBackground] = useState(settings.backgroundColor || '#ffffff')
-
-  const savedPrimary = settings.primaryColor || '#6366f1'
-  const savedSecondary = settings.secondaryColor || '#8b5cf6'
-  const savedBackground = settings.backgroundColor || '#ffffff'
-  const hasColorChanges =
-    primaryColor !== savedPrimary ||
-    secondaryColor !== savedSecondary ||
-    backgroundColor !== savedBackground
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -120,7 +115,7 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
 
       const result = await uploadLogoAction(uploadData.logoUrl)
       if (result.success) {
-        setLogoPreview(uploadData.logoUrl)
+        onLogoChange(uploadData.logoUrl)
         toast.success('Logo uploaded')
       } else {
         toast.error(result.error || 'Failed to save logo')
@@ -137,25 +132,13 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
     try {
       const result = await uploadLogoAction('')
       if (result.success) {
-        setLogoPreview(null)
+        onLogoChange(null)
         toast.success('Logo removed')
       }
     } catch {
       toast.error('Failed to remove logo')
     } finally {
       setIsUploading(false)
-    }
-  }
-
-  const handleColorUpdate = async () => {
-    setIsSavingColors(true)
-    try {
-      await onUpdate({ primaryColor, secondaryColor, backgroundColor })
-      toast.success('Colors saved')
-    } catch {
-      toast.error('Failed to save colors')
-    } finally {
-      setIsSavingColors(false)
     }
   }
 
@@ -168,7 +151,7 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
           <CardDescription>Upload a custom logo for your payment page</CardDescription>
         </CardHeader>
         <CardContent>
-          {!logoPreview ? (
+          {!logoUrl ? (
             <label
               htmlFor="logo-upload"
               className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-lg p-8 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
@@ -195,7 +178,7 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
           ) : (
             <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/30">
               <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border bg-background">
-                <Image src={logoPreview} alt="Logo" fill className="object-contain p-1" />
+                <Image src={logoUrl} alt="Logo" fill className="object-contain p-1" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">Logo uploaded</p>
@@ -238,9 +221,9 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
                       <button
                         key={preset.name}
                         onClick={() => {
-                          setPrimaryColor(preset.primary)
-                          setSecondaryColor(preset.secondary)
-                          setBackground(preset.background)
+                          onPrimaryColorChange(preset.primary)
+                          onSecondaryColorChange(preset.secondary)
+                          onBackgroundColorChange(preset.background)
                         }}
                         className={`relative rounded-lg border-2 p-0.5 transition-all ${isActive ? 'border-primary scale-105 shadow-md' : 'border-border hover:border-primary/50'}`}
                         title={preset.name}
@@ -269,14 +252,10 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
           </div>
 
           <div className="border-t pt-4 space-y-4">
-          <ColorRow id="primaryColor" label="Primary Color" value={primaryColor} onChange={setPrimaryColor} />
-          <ColorRow id="secondaryColor" label="Secondary Color" value={secondaryColor} onChange={setSecondaryColor} />
-          <ColorRow id="backgroundColor" label="Background Color" value={backgroundColor} onChange={setBackground} />
+            <ColorRow id="primaryColor" label="Primary Color" value={primaryColor} onChange={onPrimaryColorChange} />
+            <ColorRow id="secondaryColor" label="Secondary Color" value={secondaryColor} onChange={onSecondaryColorChange} />
+            <ColorRow id="backgroundColor" label="Background Color" value={backgroundColor} onChange={onBackgroundColorChange} />
           </div>
-
-          <Button onClick={handleColorUpdate} disabled={isSavingColors || !hasColorChanges} className="w-full">
-            {isSavingColors ? 'Saving…' : hasColorChanges ? 'Save Colors' : 'No Changes'}
-          </Button>
         </CardContent>
       </Card>
     </div>

@@ -96,7 +96,7 @@ export function CarouselView({
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full shadow-lg"
+            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full shadow-lg hidden xs:flex"
             onClick={scrollPrev}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -104,7 +104,7 @@ export function CarouselView({
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full shadow-lg"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full shadow-lg hidden xs:flex"
             onClick={scrollNext}
           >
             <ChevronRight className="h-4 w-4" />

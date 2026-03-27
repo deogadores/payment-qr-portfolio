@@ -24,7 +24,7 @@ export const qrCodes = sqliteTable('qr_codes', {
 export const userSettings = sqliteTable('user_settings', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').notNull().unique(), // External user ID from central auth
-  displayStyle: text('display_style', { enum: ['carousel', 'grid', 'single'] })
+  displayStyle: text('display_style', { enum: ['carousel', 'grid', 'single', 'list'] })
     .notNull()
     .default('carousel'),
   primaryColor: text('primary_color').notNull().default('#3b82f6'),

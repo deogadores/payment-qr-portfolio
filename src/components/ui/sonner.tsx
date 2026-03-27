@@ -1,31 +1,36 @@
-"use client"
+'use client'
 
-import { useTheme } from "next-themes"
-import { Toaster as Sonner } from "sonner"
+import { Toaster as Sonner } from 'sonner'
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
-
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
-
+export function Toaster() {
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
+      theme="dark"
+      position="bottom-right"
+      richColors
+      closeButton
+      expand
+      duration={3500}
+      gap={8}
       toastOptions={{
         classNames: {
-          toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton:
-            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton:
-            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+          toast: [
+            'flex items-start gap-3 rounded-xl border px-4 py-3 shadow-xl',
+            'bg-card/95 backdrop-blur-md border-border',
+            'text-sm font-medium text-foreground',
+          ].join(' '),
+          title: 'font-semibold text-sm leading-snug',
+          description: 'text-xs text-muted-foreground mt-0.5 font-normal',
+          success: '!border-emerald-500/30 !bg-emerald-950/80',
+          error: '!border-red-500/30 !bg-red-950/80',
+          warning: '!border-amber-500/30 !bg-amber-950/80',
+          info: '!border-blue-500/30 !bg-blue-950/80',
+          closeButton: [
+            '!border-border !bg-card !text-muted-foreground',
+            'hover:!bg-accent hover:!text-foreground transition-colors',
+          ].join(' '),
         },
       }}
-      {...props}
     />
   )
 }
-
-export { Toaster }

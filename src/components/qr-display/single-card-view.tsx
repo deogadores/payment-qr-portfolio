@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { QrRenderer } from './qr-renderer'
+import { motion } from 'framer-motion'
 
 type QrCode = {
   id: string
@@ -53,14 +54,18 @@ export function SingleCardView({
             <button
               key={qr.id}
               onClick={() => setSelectedQr(qr.id)}
-              className="whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-all flex-shrink-0"
-              style={
-                isActive
-                  ? { backgroundColor: activeColor, color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }
-                  : { color: activeColor, backgroundColor: 'transparent' }
-              }
+              className="relative whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium flex-shrink-0"
+              style={{ color: isActive ? '#fff' : activeColor }}
             >
-              {qr.title}
+              {isActive && (
+                <motion.div
+                  layoutId="single-card-highlight"
+                  className="absolute inset-0 rounded-sm"
+                  style={{ backgroundColor: activeColor, boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }}
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+                />
+              )}
+              <span className="relative z-10">{qr.title}</span>
             </button>
           )
         })}

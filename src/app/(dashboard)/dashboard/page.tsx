@@ -84,7 +84,7 @@ export default async function DashboardPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Manage your QR payment codes and share links</p>
         </div>
-        <Link href="/qr-codes/upload" className="shrink-0">
+        <Link href="/dashboard/upload" className="shrink-0">
           <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Upload QR Code
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                 <p className="text-muted-foreground mb-4">
                   Start building your payment QR portfolio by uploading your first QR code
                 </p>
-                <Link href="/qr-codes/upload">
+                <Link href="/dashboard/upload">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
                     Upload Your First QR Code

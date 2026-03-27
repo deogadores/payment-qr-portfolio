@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { LayoutDashboard, QrCode, Settings, Share2, LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { logoutAction } from '@/actions/auth'
+import { motion } from 'framer-motion'
 
 const navLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,11 +37,18 @@ export function DashboardNav({ email }: { email: string }) {
               {navLinks.map(({ href, label, icon: Icon }) => {
                 const active = pathname === href || pathname.startsWith(href + '/')
                 return (
-                  <Link key={href} href={href}>
+                  <Link key={href} href={href} className="relative">
+                    {active && (
+                      <motion.div
+                        layoutId="nav-highlight"
+                        className="absolute inset-0 rounded-md bg-accent"
+                        transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+                      />
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={active ? 'text-foreground bg-accent' : 'text-muted-foreground'}
+                      className={`relative z-10 ${active ? 'text-foreground' : 'text-muted-foreground'}`}
                     >
                       <Icon className="h-4 w-4 mr-1.5" />
                       {label}
@@ -80,11 +88,18 @@ export function DashboardNav({ email }: { email: string }) {
           {navLinks.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
-              <Link key={href} href={href} onClick={() => setOpen(false)}>
+              <Link key={href} href={href} onClick={() => setOpen(false)} className="relative">
+                {active && (
+                  <motion.div
+                    layoutId="nav-mobile-highlight"
+                    className="absolute inset-0 rounded-md bg-accent"
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+                  />
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`w-full justify-start ${active ? 'text-foreground bg-accent' : 'text-muted-foreground'}`}
+                  className={`relative z-10 w-full justify-start ${active ? 'text-foreground' : 'text-muted-foreground'}`}
                 >
                   <Icon className="h-4 w-4 mr-2" />
                   {label}

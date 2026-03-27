@@ -1,6 +1,10 @@
-import { QrCode, Share2, Shield } from 'lucide-react'
-import { Navbar } from '@/components/landing/navbar'
+import { QrCode } from 'lucide-react'
+import Link from 'next/link'
 import { ContactForm } from '@/components/landing/contact-form'
+import { FeaturesShowcase } from '@/components/landing/features-showcase'
+import { Button } from '@/components/ui/button'
+import { Footer } from '@/components/footer'
+import { Toaster } from '@/components/ui/sonner'
 import { getSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 
@@ -8,40 +12,47 @@ export default async function HomePage() {
   const session = await getSession()
   if (session?.user) redirect('/dashboard')
   return (
+    <>
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-
       {/* Hero */}
-      <section className="flex-1 flex items-center justify-center px-4 py-20">
-        <div className="max-w-2xl mx-auto text-center space-y-6">
-          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto">
-            <QrCode className="h-7 w-7 text-primary-foreground" />
+      <section className="relative flex-1 flex items-center justify-center px-4 py-24 overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/10 blur-3xl" />
+        </div>
+
+        <div className="max-w-3xl mx-auto text-center space-y-8">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium">
+            <QrCode className="h-3.5 w-3.5" />
+            Payment QR Portfolio
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">
-            Share Payment QR Codes
-            <span className="block text-primary">Securely</span>
+          {/* Headline */}
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]">
+            Share your payment QR codes{' '}
+            <span className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">
+              safely and simply
+            </span>
           </h1>
 
-          <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-            Upload your e-wallet or bank QR codes and share them via secure, time-limited links.
+          {/* Subtitle */}
+          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
+            Upload your e-wallet and bank QR codes once. Share them through secure, time-limited links — no more screenshots in group chats.
           </p>
 
-          {/* Quick features */}
-          <div className="flex flex-wrap justify-center gap-6 pt-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <QrCode className="h-4 w-4 text-primary" />
-              Manage QR Codes
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Share2 className="h-4 w-4 text-primary" />
-              Expiring Links
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Shield className="h-4 w-4 text-primary" />
-              Private & Secure
-            </span>
+          {/* CTAs */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Button asChild size="lg" className="px-8">
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="px-8">
+              <Link href="#request-access">Request Access</Link>
+            </Button>
           </div>
+
+          {/* Animated features */}
+          <FeaturesShowcase />
         </div>
       </section>
 
@@ -57,14 +68,9 @@ export default async function HomePage() {
           <ContactForm />
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t px-4 py-6">
-        <div className="max-w-xl mx-auto flex items-center justify-between gap-3 text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">QR Portfolio</span>
-          <span>© {new Date().getFullYear()} QR Portfolio</span>
-        </div>
-      </footer>
     </div>
+    <Footer />
+    <Toaster />
+  </>
   )
 }

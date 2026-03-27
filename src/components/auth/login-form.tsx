@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,7 +16,14 @@ import { Loader2 } from 'lucide-react'
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('reset') === '1') {
+      toast.success('Password reset successfully. Please sign in.')
+    }
+  }, [searchParams])
 
   const {
     register,
@@ -69,7 +76,12 @@ export function LoginForm() {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
@@ -93,9 +105,6 @@ export function LoginForm() {
               Register here
             </Link>
           </p>
-          <Link href="/" className="text-sm text-center text-primary hover:underline w-full">
-            Back to home
-          </Link>
         </CardFooter>
       </form>
     </Card>

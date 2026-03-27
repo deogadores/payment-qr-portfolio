@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import * as TabsPrimitive from '@radix-ui/react-tabs'
 import { cn } from '@/lib/utils'
 import { ReactNode } from 'react'
+import { motion } from 'framer-motion'
 
 interface Tab {
   value: string
@@ -32,13 +33,20 @@ export function SettingsTabs({ tabs, activeTab }: { tabs: Tab[]; activeTab: stri
               key={tab.value}
               value={tab.value}
               className={cn(
-                'flex-1 rounded-sm px-3 py-1.5 text-sm font-medium transition-all',
+                'relative flex-1 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-md'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                  ? 'text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              {tab.label}
+              {isActive && (
+                <motion.div
+                  layoutId="settings-tab-highlight"
+                  className="absolute inset-0 rounded-sm bg-primary shadow-md"
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+                />
+              )}
+              <span className="relative z-10">{tab.label}</span>
             </TabsPrimitive.Trigger>
           )
         })}

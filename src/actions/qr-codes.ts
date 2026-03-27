@@ -43,7 +43,7 @@ export async function createQrCodeAction(data: {
       })
       .returning() as (typeof qrCodes.$inferSelect)[]
 
-    revalidatePath('/qr-codes')
+    revalidatePath('/dashboard')
     return { success: true, qrCode: newQrCodes[0] }
   } catch (error) {
     console.error('Error creating QR code:', error)
@@ -58,15 +58,19 @@ export async function updateQrCodeAction(
     description?: string
     accountName?: string
     accountNumber?: string
+    imageUrl?: string
+    oldImageUrl?: string
     isActive?: boolean
   }
 ) {
   try {
     const session = await requireUser()
 
+    const { oldImageUrl, ...updateData } = data
+
     const updatedQrCodes = await db
       .update(qrCodes)
-      .set(data)
+      .set(updateData)
       .where(and(eq(qrCodes.id, qrCodeId), eq(qrCodes.userId, session.user.id)))
       .returning() as (typeof qrCodes.$inferSelect)[]
     const updated = updatedQrCodes[0]
@@ -75,7 +79,12 @@ export async function updateQrCodeAction(
       return { success: false, error: 'QR code not found' }
     }
 
-    revalidatePath('/qr-codes')
+    // Delete the old image from blob storage after a successful update
+    if (oldImageUrl && updateData.imageUrl && oldImageUrl !== updateData.imageUrl) {
+      await deleteImage(oldImageUrl).catch(() => {})
+    }
+
+    revalidatePath('/dashboard')
     return { success: true, qrCode: updated }
   } catch (error) {
     console.error('Error updating QR code:', error)
@@ -106,7 +115,7 @@ export async function deleteQrCodeAction(qrCodeId: string) {
     // Delete from database
     await db.delete(qrCodes).where(eq(qrCodes.id, qrCodeId))
 
-    revalidatePath('/qr-codes')
+    revalidatePath('/dashboard')
     return { success: true }
   } catch (error) {
     console.error('Error deleting QR code:', error)
@@ -128,7 +137,7 @@ export async function updateQrCodeOrderAction(updates: { id: string; order: numb
       )
     )
 
-    revalidatePath('/qr-codes')
+    revalidatePath('/dashboard')
     return { success: true }
   } catch (error) {
     console.error('Error updating order:', error)

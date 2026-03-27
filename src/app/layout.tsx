@@ -1,14 +1,38 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
-import { Toaster } from '@/components/ui/sonner'
-import { Footer } from '@/components/footer'
 
-const inter = Inter({ subsets: ['latin'] })
+const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Payment QR Portfolio',
-  description: 'Securely share your payment QR codes with customizable presentations',
+  description:
+    'Create a professional portfolio of your payment QR codes with customizable presentations and secure, time-limited sharing links.',
+  openGraph: {
+    title: 'Payment QR Portfolio',
+    description:
+      'Create a professional portfolio of your payment QR codes with customizable presentations and secure, time-limited sharing links.',
+    url: 'https://payment-qr-portfolio.jdgadores.dev',
+    siteName: 'Payment QR Portfolio',
+    images: [
+      {
+        url: 'https://payment-qr-portfolio.jdgadores.dev/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Payment QR Portfolio — customizable QR code sharing',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Payment QR Portfolio',
+    description:
+      'Create a professional portfolio of your payment QR codes with customizable presentations and secure, time-limited sharing links.',
+    images: ['https://payment-qr-portfolio.jdgadores.dev/og-image.png'],
+  },
+  metadataBase: new URL('https://payment-qr-portfolio.jdgadores.dev'),
 }
 
 export default function RootLayout({
@@ -18,10 +42,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} flex flex-col min-h-screen`}>
+      <body className={`${plusJakartaSans.className} flex flex-col min-h-screen`}>
         {children}
-        <Footer />
-        <Toaster />
       </body>
     </html>
   )

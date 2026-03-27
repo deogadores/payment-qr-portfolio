@@ -182,9 +182,6 @@ export function RegisterForm() {
               Sign in
             </Link>
           </p>
-          <Link href="/" className="text-sm text-center text-primary hover:underline w-full">
-            Back to home
-          </Link>
         </CardFooter>
       </form>
     </Card>
