@@ -7,7 +7,7 @@ const TOOL_SLUG = 'qr-portfolio'
 const publicPaths = ['/', '/login', '/register', '/request-access']
 const sharePaths = ['/share']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // Allow public paths

@@ -117,7 +117,7 @@ export function ContactForm() {
             </Label>
             <Textarea
               id="reason"
-              placeholder="Tell us briefly why you need access to the QR Payment Portfolio..."
+              placeholder="Tell us briefly why you need access to the Payment QR Portfolio..."
               rows={4}
               className="resize-none"
               {...register('reason')}

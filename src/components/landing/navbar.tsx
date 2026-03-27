@@ -1,55 +1,23 @@
-'use client'
-
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { QrCode, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { QrCode } from 'lucide-react'
 
 export function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
   return (
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <QrCode className="h-5 w-5 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <QrCode className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-xl">QR Portfolio</span>
+            <span className="font-bold text-lg">QR Portfolio</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-3">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/login">Sign In</Link>
-            </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+          <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <Link href="/login">Sign In</Link>
+          </Button>
         </div>
-
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   )

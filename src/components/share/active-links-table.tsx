@@ -1,16 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { revokeShareLinkAction } from '@/actions/share-links'
 import { toast } from 'sonner'
@@ -29,13 +23,8 @@ type ShareLink = {
   createdAt: Date
 }
 
-export function ActiveLinksTable({
-  links,
-  onLinkRevoked,
-}: {
-  links: ShareLink[]
-  onLinkRevoked?: () => void
-}) {
+export function ActiveLinksTable({ links }: { links: ShareLink[] }) {
+  const router = useRouter()
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [revokingId, setRevokingId] = useState<string | null>(null)
 
@@ -46,24 +35,23 @@ export function ActiveLinksTable({
       setCopiedId(id)
       toast.success('Link copied!')
       setTimeout(() => setCopiedId(null), 2000)
-    } catch (error) {
+    } catch {
       toast.error('Failed to copy link')
     }
   }
 
   const handleRevoke = async (id: string) => {
     if (!confirm('Are you sure you want to revoke this link?')) return
-
     setRevokingId(id)
     try {
       const result = await revokeShareLinkAction(id)
       if (result.success) {
         toast.success('Link revoked')
-        onLinkRevoked?.()
+        router.refresh()
       } else {
         toast.error(result.error || 'Failed to revoke link')
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred')
     } finally {
       setRevokingId(null)
@@ -71,12 +59,10 @@ export function ActiveLinksTable({
   }
 
   const getLinkStatus = (link: ShareLink) => {
-    if (link.linkType === 'one-time' && link.isUsed) {
+    if (link.linkType === 'one-time' && link.isUsed)
       return { label: 'Used', variant: 'secondary' as const }
-    }
-    if (link.linkType === 'expiring' && link.expiresAt && link.expiresAt < new Date()) {
+    if (link.linkType === 'expiring' && link.expiresAt && link.expiresAt < new Date())
       return { label: 'Expired', variant: 'destructive' as const }
-    }
     return { label: 'Active', variant: 'default' as const }
   }
 
@@ -102,12 +88,85 @@ export function ActiveLinksTable({
     <Card>
       <CardHeader>
         <CardTitle>Active Share Links</CardTitle>
-        <CardDescription>
-          Manage and monitor your share links
-        </CardDescription>
+        <CardDescription>Manage and monitor your share links</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+
+        {/* Mobile card list */}
+        <div className="md:hidden space-y-3">
+          {links.map((link) => {
+            const status = getLinkStatus(link)
+            const isActive = status.label === 'Active'
+            const expiryLabel = link.linkType === 'expiring' && link.expiresAt
+              ? formatDistanceToNow(new Date(link.expiresAt), { addSuffix: true })
+              : link.isUsed && link.usedAt
+              ? formatDistanceToNow(new Date(link.usedAt), { addSuffix: true })
+              : null
+            return (
+              <div key={link.id} className="rounded-lg border p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {link.linkType === 'one-time'
+                      ? <Ticket className="h-4 w-4 text-muted-foreground" />
+                      : <Clock className="h-4 w-4 text-muted-foreground" />
+                    }
+                    <span className="text-sm font-medium capitalize">{link.linkType === 'one-time' ? 'One-time' : 'Expiring'}</span>
+                  </div>
+                  <Badge variant={status.variant}>{status.label}</Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div>
+                    <p className="font-medium text-foreground mb-0.5">Views</p>
+                    <div className="flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      {link.accessCount}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground mb-0.5">Created</p>
+                    <p>{formatDistanceToNow(new Date(link.createdAt), { addSuffix: true })}</p>
+                  </div>
+                  {expiryLabel && (
+                    <div className="col-span-2">
+                      <p className="font-medium text-foreground mb-0.5">
+                        {link.linkType === 'expiring' ? 'Expires' : 'Used'}
+                      </p>
+                      <p>{expiryLabel}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleCopy(link.token, link.id)}
+                    disabled={!isActive}
+                  >
+                    {copiedId === link.id
+                      ? <><Check className="h-3.5 w-3.5 mr-1.5 text-green-600" />Copied</>
+                      : <><Copy className="h-3.5 w-3.5 mr-1.5" />Copy Link</>
+                    }
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRevoke(link.id)}
+                    disabled={revokingId === link.id}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -126,11 +185,10 @@ export function ActiveLinksTable({
                   <TableRow key={link.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {link.linkType === 'one-time' ? (
-                          <Ticket className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                        )}
+                        {link.linkType === 'one-time'
+                          ? <Ticket className="h-4 w-4 text-muted-foreground" />
+                          : <Clock className="h-4 w-4 text-muted-foreground" />
+                        }
                         <span className="capitalize">{link.linkType}</span>
                       </div>
                     </TableCell>
@@ -161,11 +219,10 @@ export function ActiveLinksTable({
                           onClick={() => handleCopy(link.token, link.id)}
                           disabled={status.label !== 'Active'}
                         >
-                          {copiedId === link.id ? (
-                            <Check className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
+                          {copiedId === link.id
+                            ? <Check className="h-4 w-4 text-green-600" />
+                            : <Copy className="h-4 w-4" />
+                          }
                         </Button>
                         <Button
                           variant="outline"
@@ -183,6 +240,7 @@ export function ActiveLinksTable({
             </TableBody>
           </Table>
         </div>
+
       </CardContent>
     </Card>
   )

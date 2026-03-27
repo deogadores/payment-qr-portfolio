@@ -19,6 +19,7 @@ type QrCode = {
 type CarouselViewProps = {
   qrCodes: QrCode[]
   showAccountDetails?: boolean
+  showDownloadButton?: boolean
   primaryColor?: string
   secondaryColor?: string
 }
@@ -26,6 +27,7 @@ type CarouselViewProps = {
 export function CarouselView({
   qrCodes,
   showAccountDetails,
+  showDownloadButton,
   primaryColor,
   secondaryColor,
 }: CarouselViewProps) {
@@ -79,6 +81,7 @@ export function CarouselView({
                 <QrRenderer
                   qr={qr}
                   showAccountDetails={showAccountDetails}
+                  showDownloadButton={showDownloadButton}
                   primaryColor={primaryColor}
                   secondaryColor={secondaryColor}
                 />

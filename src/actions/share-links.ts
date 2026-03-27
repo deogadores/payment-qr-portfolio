@@ -2,8 +2,8 @@
 
 import { getSession } from '@/lib/auth/session'
 import { db } from '@/lib/db'
-import { shareLinks } from '@/lib/db/schema'
-import { eq, and, desc } from 'drizzle-orm'
+import { shareLinks, userSettings } from '@/lib/db/schema'
+import { eq, and, desc, inArray, sql } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createShareLink } from '@/lib/share/link-generator'
@@ -29,8 +29,16 @@ export async function createShareLinkAction(data: {
       expiresIn: data.expiresIn,
     })
 
+    await db
+      .insert(userSettings)
+      .values({ userId: session.user.id, totalLinksCreated: 1 })
+      .onConflictDoUpdate({
+        target: userSettings.userId,
+        set: { totalLinksCreated: sql`total_links_created + 1` },
+      })
+
     revalidatePath('/share')
-    return { success: true, url: result.url, link: result.link }
+    return { success: true, token: result.token, link: result.link }
   } catch (error) {
     console.error('Error creating share link:', error)
     return { success: false, error: 'Failed to create share link' }
@@ -41,16 +49,38 @@ export async function getShareLinksAction() {
   try {
     const session = await requireUser()
 
-    const links = await db
+    const allLinks = await db
       .select()
       .from(shareLinks)
       .where(eq(shareLinks.userId, session.user.id))
       .orderBy(desc(shareLinks.createdAt))
 
-    return { success: true, links }
+    const now = new Date()
+
+    const activeLinks = allLinks.filter((link) => {
+      if (link.isRevoked) return false
+      if (link.linkType === 'one-time') return !link.isUsed
+      return link.expiresAt !== null && link.expiresAt > now
+    })
+
+    const allPastLinks = allLinks.filter((link) => {
+      if (link.isRevoked) return true
+      if (link.linkType === 'one-time') return link.isUsed
+      return link.expiresAt === null || link.expiresAt <= now
+    })
+
+    // Delete records beyond the 10 most recent past links
+    if (allPastLinks.length > 10) {
+      const toDelete = allPastLinks.slice(10).map((l) => l.id)
+      await db.delete(shareLinks).where(inArray(shareLinks.id, toDelete))
+    }
+
+    const pastLinks = allPastLinks.slice(0, 10)
+
+    return { success: true, links: allLinks, activeLinks, pastLinks }
   } catch (error) {
     console.error('Error fetching share links:', error)
-    return { success: false, error: 'Failed to fetch share links', links: [] }
+    return { success: false, error: 'Failed to fetch share links', links: [], activeLinks: [], pastLinks: [] }
   }
 }
 
@@ -58,9 +88,9 @@ export async function revokeShareLinkAction(linkId: string) {
   try {
     const session = await requireUser()
 
-    // Delete the link (only if it belongs to the user)
     await db
-      .delete(shareLinks)
+      .update(shareLinks)
+      .set({ isRevoked: true, revokedAt: new Date() })
       .where(and(eq(shareLinks.id, linkId), eq(shareLinks.userId, session.user.id)))
 
     revalidatePath('/share')

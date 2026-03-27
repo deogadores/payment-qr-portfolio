@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QrRenderer } from './qr-renderer'
 
 type QrCode = {
@@ -17,6 +16,7 @@ type QrCode = {
 type SingleCardViewProps = {
   qrCodes: QrCode[]
   showAccountDetails?: boolean
+  showDownloadButton?: boolean
   primaryColor?: string
   secondaryColor?: string
 }
@@ -24,6 +24,7 @@ type SingleCardViewProps = {
 export function SingleCardView({
   qrCodes,
   showAccountDetails,
+  showDownloadButton,
   primaryColor,
   secondaryColor,
 }: SingleCardViewProps) {
@@ -37,28 +38,48 @@ export function SingleCardView({
     )
   }
 
-  return (
-    <Tabs value={selectedQr} onValueChange={setSelectedQr} className="w-full">
-      <TabsList className="w-full justify-start mb-6 overflow-x-auto flex-nowrap">
-        {qrCodes.map((qr) => (
-          <TabsTrigger key={qr.id} value={qr.id} className="whitespace-nowrap">
-            {qr.title}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+  const activeColor = primaryColor || '#3b82f6'
 
-      {qrCodes.map((qr) => (
-        <TabsContent key={qr.id} value={qr.id}>
-          <div className="max-w-md mx-auto">
+  return (
+    <div className="w-full">
+      {/* Tab bar */}
+      <div
+        className="flex overflow-x-auto overflow-y-hidden mb-6 rounded-md border p-1 gap-1"
+        style={{ backgroundColor: `${activeColor}18` }}
+      >
+        {qrCodes.map((qr) => {
+          const isActive = qr.id === selectedQr
+          return (
+            <button
+              key={qr.id}
+              onClick={() => setSelectedQr(qr.id)}
+              className="whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-all flex-shrink-0"
+              style={
+                isActive
+                  ? { backgroundColor: activeColor, color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }
+                  : { color: activeColor, backgroundColor: 'transparent' }
+              }
+            >
+              {qr.title}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Active panel */}
+      {qrCodes.map((qr) =>
+        qr.id === selectedQr ? (
+          <div key={qr.id} className="max-w-md mx-auto">
             <QrRenderer
               qr={qr}
               showAccountDetails={showAccountDetails}
+              showDownloadButton={showDownloadButton}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
             />
           </div>
-        </TabsContent>
-      ))}
-    </Tabs>
+        ) : null
+      )}
+    </div>
   )
 }

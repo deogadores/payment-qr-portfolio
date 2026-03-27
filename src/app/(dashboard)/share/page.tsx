@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getShareLinksAction } from '@/actions/share-links'
 import { LinkGenerator } from '@/components/share/link-generator'
 import { ActiveLinksTable } from '@/components/share/active-links-table'
+import { PastLinksTable } from '@/components/share/past-links-table'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +14,7 @@ export default async function SharePage() {
     redirect('/login')
   }
 
-  const { links } = await getShareLinksAction()
+  const { activeLinks, pastLinks } = await getShareLinksAction()
 
   return (
     <div className="space-y-6">
@@ -28,8 +29,9 @@ export default async function SharePage() {
         <div className="lg:col-span-1">
           <LinkGenerator />
         </div>
-        <div className="lg:col-span-2">
-          <ActiveLinksTable links={links as any} />
+        <div className="lg:col-span-2 space-y-6">
+          <ActiveLinksTable links={activeLinks as any} />
+          <PastLinksTable links={pastLinks as any} />
         </div>
       </div>
     </div>

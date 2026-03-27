@@ -10,6 +10,7 @@ import { SingleCardView } from '@/components/qr-display/single-card-view'
 import Image from 'next/image'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Ban, Clock } from 'lucide-react'
+import { hexLuminance } from '@/lib/utils'
 
 type PageProps = {
   params: Promise<{ token: string }>
@@ -34,7 +35,14 @@ export default async function SharePage({ params }: PageProps) {
               {validation.reason === 'not_found' && (
                 <>
                   <strong>Link Not Found</strong>
-                  <p className="mt-1">This share link does not exist or has been revoked.</p>
+                  <p className="mt-1">This share link does not exist.</p>
+                </>
+              )}
+              {validation.reason === 'revoked' && (
+                <>
+                  <Ban className="h-4 w-4 inline mr-2" />
+                  <strong>Link Revoked</strong>
+                  <p className="mt-1">This share link has been revoked and is no longer accessible.</p>
                 </>
               )}
               {validation.reason === 'already_used' && (
@@ -89,10 +97,20 @@ export default async function SharePage({ params }: PageProps) {
   const pageTitle = settings?.pageTitle || `${user?.name || 'User'}'s Payment Methods`
   const pageDescription = settings?.pageDescription || 'Choose your preferred payment method'
   const showAccountDetails = settings?.showAccountDetails ?? true
+  const showDownloadButton = settings?.showDownloadButton ?? true
   const primaryColor = settings?.primaryColor || '#6366f1'
   const secondaryColor = settings?.secondaryColor || '#8b5cf6'
   const backgroundColor = settings?.backgroundColor || '#ffffff'
   const logoUrl = settings?.logoUrl
+
+  const bgLuminance = hexLuminance(backgroundColor)
+  const bgIsDark = bgLuminance < 0.4
+  const bgIsLight = bgLuminance > 0.85
+  const logoOverlayStyle = bgIsDark
+    ? { backgroundColor: 'rgba(255,255,255,0.12)', boxShadow: '0 0 0 1px rgba(255,255,255,0.18)' }
+    : bgIsLight
+    ? { backgroundColor: 'rgba(0,0,0,0.05)', boxShadow: '0 0 0 1px rgba(0,0,0,0.08)' }
+    : undefined
 
   if (activeQrCodes.length === 0) {
     return (
@@ -119,12 +137,15 @@ export default async function SharePage({ params }: PageProps) {
           {/* Header */}
           <div className="text-center mb-12">
             {logoUrl && (
-              <div className="relative h-20 w-20 mx-auto mb-6">
+              <div
+                className="relative h-20 w-20 mx-auto mb-6 rounded-2xl"
+                style={logoOverlayStyle}
+              >
                 <Image
                   src={logoUrl}
                   alt="Logo"
                   fill
-                  className="object-contain"
+                  className="object-contain p-2"
                 />
               </div>
             )}
@@ -142,6 +163,7 @@ export default async function SharePage({ params }: PageProps) {
             <CarouselView
               qrCodes={activeQrCodes}
               showAccountDetails={showAccountDetails}
+              showDownloadButton={showDownloadButton}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
             />
@@ -150,6 +172,7 @@ export default async function SharePage({ params }: PageProps) {
             <GridView
               qrCodes={activeQrCodes}
               showAccountDetails={showAccountDetails}
+              showDownloadButton={showDownloadButton}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
             />
@@ -158,6 +181,7 @@ export default async function SharePage({ params }: PageProps) {
             <SingleCardView
               qrCodes={activeQrCodes}
               showAccountDetails={showAccountDetails}
+              showDownloadButton={showDownloadButton}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
             />

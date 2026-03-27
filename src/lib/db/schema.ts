@@ -35,8 +35,13 @@ export const userSettings = sqliteTable('user_settings', {
   showAccountDetails: integer('show_account_details', { mode: 'boolean' })
     .notNull()
     .default(true),
+  showDownloadButton: integer('show_download_button', { mode: 'boolean' })
+    .notNull()
+    .default(true),
   pageTitle: text('page_title'),
   pageDescription: text('page_description'),
+  totalViews: integer('total_views').notNull().default(0),
+  totalLinksCreated: integer('total_links_created').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
     .$onUpdate(() => new Date()),
@@ -53,6 +58,8 @@ export const shareLinks = sqliteTable('share_links', {
   usedAt: integer('used_at', { mode: 'timestamp' }), // When link was used
   accessCount: integer('access_count').notNull().default(0),
   lastAccessedAt: integer('last_accessed_at', { mode: 'timestamp' }),
+  isRevoked: integer('is_revoked', { mode: 'boolean' }).notNull().default(false),
+  revokedAt: integer('revoked_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 })
 
@@ -62,6 +69,7 @@ export const shareLinkLogs = sqliteTable('share_link_logs', {
   shareLinkId: text('share_link_id').notNull(), // Reference to shareLinks.id
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
+  visitorFingerprint: text('visitor_fingerprint'), // sha256(ip|ua) first 16 hex chars
   accessedAt: integer('accessed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 })
 

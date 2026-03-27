@@ -7,8 +7,28 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { uploadLogoAction } from '@/actions/settings'
 import { toast } from 'sonner'
-import { Loader2, Upload, X } from 'lucide-react'
+import { Loader2, Upload, X, Check } from 'lucide-react'
 import Image from 'next/image'
+
+const LIGHT_PRESETS = [
+  { name: 'Ocean',   primary: '#3b82f6', secondary: '#1e40af', background: '#ffffff' },
+  { name: 'Violet',  primary: '#6366f1', secondary: '#8b5cf6', background: '#ffffff' },
+  { name: 'Emerald', primary: '#10b981', secondary: '#059669', background: '#ffffff' },
+  { name: 'Rose',    primary: '#f43f5e', secondary: '#e11d48', background: '#ffffff' },
+  { name: 'Amber',   primary: '#f59e0b', secondary: '#d97706', background: '#fffbeb' },
+  { name: 'Forest',  primary: '#22c55e', secondary: '#16a34a', background: '#f0fdf4' },
+  { name: 'Slate',   primary: '#64748b', secondary: '#475569', background: '#f8fafc' },
+  { name: 'Blush',   primary: '#ec4899', secondary: '#db2777', background: '#fdf2f8' },
+] as const
+
+const DARK_PRESETS = [
+  { name: 'Midnight', primary: '#818cf8', secondary: '#a78bfa', background: '#0f172a' },
+  { name: 'Obsidian', primary: '#38bdf8', secondary: '#0ea5e9', background: '#0c0c0c' },
+  { name: 'Aurora',   primary: '#34d399', secondary: '#a78bfa', background: '#0d1117' },
+  { name: 'Ember',    primary: '#fb923c', secondary: '#f87171', background: '#1c0f0a' },
+] as const
+
+const PRESETS = [...LIGHT_PRESETS, ...DARK_PRESETS]
 
 type AppearanceSettingsProps = {
   settings: {
@@ -20,12 +40,57 @@ type AppearanceSettingsProps = {
   onUpdate: (data: any) => Promise<void>
 }
 
+function ColorRow({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string
+  label: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative flex-shrink-0">
+        <input
+          id={id}
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-10 h-10 rounded-lg border border-border cursor-pointer p-0.5 bg-transparent"
+        />
+      </div>
+      <div className="flex-1 space-y-1">
+        <Label htmlFor={id} className="text-xs text-muted-foreground">{label}</Label>
+        <Input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-8 font-mono text-sm"
+          maxLength={7}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsProps) {
   const [isUploading, setIsUploading] = useState(false)
+  const [isSavingColors, setIsSavingColors] = useState(false)
   const [logoPreview, setLogoPreview] = useState<string | null>(settings.logoUrl || null)
   const [primaryColor, setPrimaryColor] = useState(settings.primaryColor || '#6366f1')
   const [secondaryColor, setSecondaryColor] = useState(settings.secondaryColor || '#8b5cf6')
   const [backgroundColor, setBackground] = useState(settings.backgroundColor || '#ffffff')
+
+  const savedPrimary = settings.primaryColor || '#6366f1'
+  const savedSecondary = settings.secondaryColor || '#8b5cf6'
+  const savedBackground = settings.backgroundColor || '#ffffff'
+  const hasColorChanges =
+    primaryColor !== savedPrimary ||
+    secondaryColor !== savedSecondary ||
+    backgroundColor !== savedBackground
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -35,7 +100,6 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
       toast.error('Please select an image file')
       return
     }
-
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Logo must be less than 2MB')
       return
@@ -50,18 +114,14 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
         method: 'POST',
         body: formData,
       })
-
       const uploadData = await uploadRes.json()
 
-      if (!uploadRes.ok) {
-        throw new Error(uploadData.error || 'Upload failed')
-      }
+      if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed')
 
       const result = await uploadLogoAction(uploadData.logoUrl)
-
       if (result.success) {
         setLogoPreview(uploadData.logoUrl)
-        toast.success('Logo uploaded successfully!')
+        toast.success('Logo uploaded')
       } else {
         toast.error(result.error || 'Failed to save logo')
       }
@@ -80,7 +140,7 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
         setLogoPreview(null)
         toast.success('Logo removed')
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to remove logo')
     } finally {
       setIsUploading(false)
@@ -88,15 +148,20 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
   }
 
   const handleColorUpdate = async () => {
-    await onUpdate({
-      primaryColor,
-      secondaryColor,
-      backgroundColor,
-    })
+    setIsSavingColors(true)
+    try {
+      await onUpdate({ primaryColor, secondaryColor, backgroundColor })
+      toast.success('Colors saved')
+    } catch {
+      toast.error('Failed to save colors')
+    } finally {
+      setIsSavingColors(false)
+    }
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Logo */}
       <Card>
         <CardHeader>
           <CardTitle>Logo</CardTitle>
@@ -104,117 +169,113 @@ export function AppearanceSettings({ settings, onUpdate }: AppearanceSettingsPro
         </CardHeader>
         <CardContent>
           {!logoPreview ? (
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors">
-              <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <label htmlFor="logo-upload" className="cursor-pointer">
-                <span className="text-primary hover:text-primary/80 font-medium">
-                  Choose a logo
-                </span>
-                <span className="text-muted-foreground"> or drag and drop</span>
-                <input
-                  id="logo-upload"
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handleLogoUpload}
-                  disabled={isUploading}
-                />
-              </label>
-              <p className="text-xs text-muted-foreground mt-2">PNG, JPG up to 2MB</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="relative border rounded-lg p-4 bg-muted">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={handleRemoveLogo}
-                  disabled={isUploading}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                <div className="relative h-32 w-32 mx-auto">
-                  <Image
-                    src={logoPreview}
-                    alt="Logo preview"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
+            <label
+              htmlFor="logo-upload"
+              className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-lg p-8 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+            >
+              {isUploading
+                ? <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+                : <Upload className="h-8 w-8 text-muted-foreground" />
+              }
+              <div className="text-center">
+                <p className="text-sm font-medium">
+                  {isUploading ? 'Uploading…' : 'Click to upload a logo'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 2MB</p>
               </div>
+              <input
+                id="logo-upload"
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={handleLogoUpload}
+                disabled={isUploading}
+              />
+            </label>
+          ) : (
+            <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/30">
+              <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border bg-background">
+                <Image src={logoPreview} alt="Logo" fill className="object-contain p-1" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Logo uploaded</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Showing on your payment page</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRemoveLogo}
+                disabled={isUploading}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <X className="h-4 w-4 mr-1.5" />
+                Remove
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
+      {/* Colors */}
       <Card>
         <CardHeader>
           <CardTitle>Colors</CardTitle>
-          <CardDescription>Customize your payment page colors</CardDescription>
+          <CardDescription>Customize your payment page color scheme</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="primaryColor">Primary Color</Label>
-            <div className="flex gap-2">
-              <Input
-                id="primaryColor"
-                type="color"
-                value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
-                className="w-20 h-10 p-1 cursor-pointer"
-              />
-              <Input
-                type="text"
-                value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
-                className="flex-1"
-              />
-            </div>
+          {/* Presets */}
+          <div className="space-y-3">
+            {([['Light', LIGHT_PRESETS], ['Dark', DARK_PRESETS]] as const).map(([group, presets]) => (
+              <div key={group}>
+                <p className="text-xs font-medium text-muted-foreground mb-2">{group}</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {presets.map((preset) => {
+                    const isActive =
+                      primaryColor === preset.primary &&
+                      secondaryColor === preset.secondary &&
+                      backgroundColor === preset.background
+                    return (
+                      <button
+                        key={preset.name}
+                        onClick={() => {
+                          setPrimaryColor(preset.primary)
+                          setSecondaryColor(preset.secondary)
+                          setBackground(preset.background)
+                        }}
+                        className={`relative rounded-lg border-2 p-0.5 transition-all ${isActive ? 'border-primary scale-105 shadow-md' : 'border-border hover:border-primary/50'}`}
+                        title={preset.name}
+                      >
+                        <div className="rounded overflow-hidden aspect-square">
+                          <div className="h-3/5 w-full" style={{ backgroundColor: preset.background }} />
+                          <div className="h-2/5 w-full flex">
+                            <div className="flex-1" style={{ backgroundColor: preset.primary }} />
+                            <div className="flex-1" style={{ backgroundColor: preset.secondary }} />
+                          </div>
+                        </div>
+                        {isActive && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="bg-primary rounded-full p-0.5">
+                              <Check className="h-3 w-3 text-primary-foreground" />
+                            </div>
+                          </div>
+                        )}
+                        <p className="text-[10px] text-center text-muted-foreground mt-1 leading-none truncate">{preset.name}</p>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="secondaryColor">Secondary Color</Label>
-            <div className="flex gap-2">
-              <Input
-                id="secondaryColor"
-                type="color"
-                value={secondaryColor}
-                onChange={(e) => setSecondaryColor(e.target.value)}
-                className="w-20 h-10 p-1 cursor-pointer"
-              />
-              <Input
-                type="text"
-                value={secondaryColor}
-                onChange={(e) => setSecondaryColor(e.target.value)}
-                className="flex-1"
-              />
-            </div>
+          <div className="border-t pt-4 space-y-4">
+          <ColorRow id="primaryColor" label="Primary Color" value={primaryColor} onChange={setPrimaryColor} />
+          <ColorRow id="secondaryColor" label="Secondary Color" value={secondaryColor} onChange={setSecondaryColor} />
+          <ColorRow id="backgroundColor" label="Background Color" value={backgroundColor} onChange={setBackground} />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="backgroundColor">Background Color</Label>
-            <div className="flex gap-2">
-              <Input
-                id="backgroundColor"
-                type="color"
-                value={backgroundColor}
-                onChange={(e) => setBackground(e.target.value)}
-                className="w-20 h-10 p-1 cursor-pointer"
-              />
-              <Input
-                type="text"
-                value={backgroundColor}
-                onChange={(e) => setBackground(e.target.value)}
-                className="flex-1"
-              />
-            </div>
-          </div>
-
-          <Button onClick={handleColorUpdate} className="w-full">
-            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Colors
+          <Button onClick={handleColorUpdate} disabled={isSavingColors || !hasColorChanges} className="w-full">
+            {isSavingColors ? 'Saving…' : hasColorChanges ? 'Save Colors' : 'No Changes'}
           </Button>
         </CardContent>
       </Card>

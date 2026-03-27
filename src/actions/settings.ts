@@ -22,6 +22,7 @@ export async function updateSettingsAction(data: {
   backgroundColor?: string
   customCss?: string
   showAccountDetails?: boolean
+  showDownloadButton?: boolean
   pageTitle?: string
   pageDescription?: string
 }) {

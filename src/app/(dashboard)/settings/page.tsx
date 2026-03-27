@@ -7,15 +7,26 @@ import { updateSettingsAction } from '@/actions/settings'
 import { DisplaySettings } from '@/components/settings/display-settings'
 import { AppearanceSettings } from '@/components/settings/appearance-settings'
 import { PageSettings } from '@/components/settings/page-settings'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { SettingsTabs } from '@/components/settings/settings-tabs'
 import { revalidatePath } from 'next/cache'
+import { Suspense } from 'react'
 
-export default async function SettingsPage() {
+const VALID_TABS = ['display', 'appearance', 'page'] as const
+type TabValue = (typeof VALID_TABS)[number]
+
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>
+}) {
   const session = await getSession()
 
   if (!session?.user) {
     redirect('/login')
   }
+
+  const { tab } = await searchParams
+  const activeTab: TabValue = VALID_TABS.includes(tab as TabValue) ? (tab as TabValue) : 'display'
 
   // Get or create user settings
   const existingSettings = await db
@@ -44,31 +55,22 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Settings</h1>
-        <p className="text-muted-foreground">Customize your payment page appearance and behavior</p>
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Customize your payment page appearance and behavior</p>
       </div>
 
-      <Tabs defaultValue="display" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="display">Display</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="page">Page Info</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="display" className="space-y-4">
-          <DisplaySettings settings={settings} onUpdate={handleUpdate} />
-        </TabsContent>
-
-        <TabsContent value="appearance" className="space-y-4">
-          <AppearanceSettings settings={settings} onUpdate={handleUpdate} />
-        </TabsContent>
-
-        <TabsContent value="page" className="space-y-4">
-          <PageSettings settings={settings} onUpdate={handleUpdate} />
-        </TabsContent>
-      </Tabs>
+      <Suspense>
+        <SettingsTabs
+          activeTab={activeTab}
+          tabs={[
+            { value: 'display', label: 'Display', content: <DisplaySettings settings={settings} onUpdate={handleUpdate} /> },
+            { value: 'appearance', label: 'Appearance', content: <AppearanceSettings settings={settings} onUpdate={handleUpdate} /> },
+            { value: 'page', label: 'Page Info', content: <PageSettings settings={settings} onUpdate={handleUpdate} /> },
+          ]}
+        />
+      </Suspense>
     </div>
   )
 }

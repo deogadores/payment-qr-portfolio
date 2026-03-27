@@ -1,8 +1,12 @@
 import { QrCode, Share2, Shield } from 'lucide-react'
 import { Navbar } from '@/components/landing/navbar'
 import { ContactForm } from '@/components/landing/contact-form'
+import { getSession } from '@/lib/auth/session'
+import { redirect } from 'next/navigation'
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession()
+  if (session?.user) redirect('/dashboard')
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />

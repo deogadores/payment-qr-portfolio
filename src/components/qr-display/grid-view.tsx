@@ -15,6 +15,7 @@ type QrCode = {
 type GridViewProps = {
   qrCodes: QrCode[]
   showAccountDetails?: boolean
+  showDownloadButton?: boolean
   primaryColor?: string
   secondaryColor?: string
 }
@@ -22,6 +23,7 @@ type GridViewProps = {
 export function GridView({
   qrCodes,
   showAccountDetails,
+  showDownloadButton,
   primaryColor,
   secondaryColor,
 }: GridViewProps) {
@@ -33,13 +35,19 @@ export function GridView({
     )
   }
 
+  const cols =
+    qrCodes.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' :
+    qrCodes.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto' :
+    'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={`grid ${cols} gap-6`}>
       {qrCodes.map((qr) => (
         <QrRenderer
           key={qr.id}
           qr={qr}
           showAccountDetails={showAccountDetails}
+          showDownloadButton={showDownloadButton}
           primaryColor={primaryColor}
           secondaryColor={secondaryColor}
         />
