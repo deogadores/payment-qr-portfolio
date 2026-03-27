@@ -54,4 +54,4 @@ A modern, secure multi-tenant web application for managing and sharing payment Q
 
 ## License
 
-MIT
+GPL-3.0
