@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "dev": "next dev",
-    "build": "drizzle-kit push --force && next build",
+    "build": "drizzle-kit push --force && next build --no-turbopack",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
